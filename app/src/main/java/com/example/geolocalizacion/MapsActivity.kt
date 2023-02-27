@@ -16,7 +16,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
@@ -26,7 +25,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var binding: ActivityMapsBinding
     val latitude = 42.23639016660114
     val longitude = -8.71412387331969
-    val latLng: LatLng = LatLng(latitude, longitude);
+    var colelatLng: LatLng = LatLng(latitude, longitude)
 
 
     companion object {
@@ -64,10 +63,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         // Add a marker in Sydney and move the camera
         val sydney = LatLng(-34.0, 151.0)
         mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-       // mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        for(i in crearPuntos().indices){
+            mMap.addMarker(MarkerOptions().position(distacia(colelatLng)).title("La mas cerca"))
+        }
+        // mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
         //Cuando se  ha cargado el mapa le decimos que activa la localización
         enableLocation()
-        mMap.addMarker(MarkerOptions().position(getRandomLocation(latLng, 100)))
+
     }
 
     private fun createMarker() {
@@ -193,41 +195,75 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * @param point : el punto de donde se van a generar las marcas
      * @param radius : el radio en metros del maximo donde aparecen las marcas
      */
-    private fun getRandomLocation(point: LatLng, radius: Int): LatLng {
+    /* private fun getRandomLocation(point: LatLng, radius: Int): LatLng {
+         val randomPoints: MutableList<LatLng> = ArrayList()
+         val randomDistances: MutableList<Float> = ArrayList()
+         val myLocation = Location("")
+         myLocation.latitude = point.latitude
+         myLocation.longitude = point.longitude
+
+         //This is to generate 10 random points
+         for (i in 0..9) {
+             val x0 = point.latitude
+             val y0 = point.longitude
+             val random = Random()
+
+             // Convert radius from meters to degrees
+             val radiusInDegrees = (radius / 111000f).toDouble()
+             val u: Double = random.nextDouble()
+             val v: Double = random.nextDouble()
+             val w = radiusInDegrees * Math.sqrt(u)
+             val t = 2 * Math.PI * v
+             val x = w * Math.cos(t)
+             val y = w * Math.sin(t)
+
+             // Adjust the x-coordinate for the shrinking of the east-west distances
+             val new_x = x / Math.cos(y0)
+             val foundLatitude = new_x + x0
+             val foundLongitude = y + y0
+             val randomLatLng = LatLng(foundLatitude, foundLongitude)
+             randomPoints.add(randomLatLng)
+             val l1 = Location("")
+             l1.latitude = randomLatLng.latitude
+             l1.longitude = randomLatLng.longitude
+             randomDistances.add(l1.distanceTo(myLocation))
+         }
+         //Get nearest point to the centre
+         val indexOfNearestPointToCentre = randomDistances.indexOf(Collections.min(randomDistances))
+         return randomPoints[indexOfNearestPointToCentre]
+     }*/
+    fun crearPuntos(): MutableList<LatLng> {
         val randomPoints: MutableList<LatLng> = ArrayList()
-        val randomDistances: MutableList<Float> = ArrayList()
-        val myLocation = Location("latLng")
+        val dLatLng = LatLng(42.23708372564379, -8.714509383173333)
+        val gLatLng = LatLng(42.23768047558122, -8.71356698179755)
+        val fLatLng = LatLng(42.23915341127386, -8.71947734143543)
+        val faLatLng = LatLng(42.23803379805943, -8.71477555189415)
+        val bLatLng = LatLng(42.23845365271288, -8.716789835362103)
+        randomPoints.add(dLatLng)
+        randomPoints.add(gLatLng)
+        randomPoints.add(fLatLng)
+        randomPoints.add(faLatLng)
+        randomPoints.add(bLatLng)
+        return randomPoints
+    }
+
+    fun distacia(point: LatLng): LatLng {
+        val myLocation = Location("")
         myLocation.latitude = point.latitude
         myLocation.longitude = point.longitude
+        val randomPoints: MutableList<LatLng> = crearPuntos()
+        val randomDistances: MutableList<Float> = ArrayList()
 
-        //This is to generate 10 random points
-        for (i in 0..9) {
-            val x0 = point.latitude
-            val y0 = point.longitude
-            val random = Random()
-
-            // Convert radius from meters to degrees
-            val radiusInDegrees = (radius / 111000f).toDouble()
-            val u: Double = random.nextDouble()
-            val v: Double = random.nextDouble()
-            val w = radiusInDegrees * Math.sqrt(u)
-            val t = 2 * Math.PI * v
-            val x = w * Math.cos(t)
-            val y = w * Math.sin(t)
-
-            // Adjust the x-coordinate for the shrinking of the east-west distances
-            val new_x = x / Math.cos(y0)
-            val foundLatitude = new_x + x0
-            val foundLongitude = y + y0
-            val randomLatLng = LatLng(foundLatitude, foundLongitude)
-            randomPoints.add(randomLatLng)
-            val l1 = Location("latLng")
-            l1.latitude = randomLatLng.latitude
-            l1.longitude = randomLatLng.longitude
+        for (i in randomPoints.indices) {
+            val l1 = Location("")
+            l1.latitude = randomPoints[i].latitude
+            l1.longitude = randomPoints[i].longitude
             randomDistances.add(l1.distanceTo(myLocation))
         }
-        //Get nearest point to the centre
-        val indexOfNearestPointToCentre = randomDistances.indexOf(Collections.min(randomDistances))
-        return randomPoints[indexOfNearestPointToCentre]
+        //Coge el valor mas cercano a la marca actual
+        val indexMasCercaMarca = randomDistances.indexOf(Collections.min(randomDistances))
+        colelatLng = randomPoints[indexMasCercaMarca]
+        return randomPoints[indexMasCercaMarca]
     }
+
 }
