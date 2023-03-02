@@ -3,12 +3,15 @@ package com.example.geolocalizacion
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.geolocalizacion.databinding.ActivityMapsBinding
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -19,19 +22,22 @@ import java.util.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
-    GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
+    GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener,
+    LocationListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
     val latitude = 42.23639016660114
     val longitude = -8.71412387331969
     var colelatLng: LatLng = LatLng(latitude, longitude)
+    private var currentLocation: Location? = null
 
 
     companion object {
         const val REQUEST_LOCATION = 0
     }
 
+    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -42,6 +48,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
     }
 
     /**
@@ -53,6 +60,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+    @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         //Hago visible los botones para apliar y desampliar el mapa
@@ -60,17 +68,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         mMap.setOnMyLocationButtonClickListener(this)
         mMap.setOnMyLocationClickListener(this)
         createMarker()
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        for(i in crearPuntos().indices){
-            mMap.addMarker(MarkerOptions().position(distacia(colelatLng)).title("La mas cerca"))
-        }
-        // mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+
+        val cole = LatLng(42.23639016660114, -8.71412387331969)
+        mMap.addMarker(MarkerOptions().position(cole).title("cole"))
+
         //Cuando se  ha cargado el mapa le decimos que activa la localización
         enableLocation()
 
+        // mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+
     }
+
+    override fun onLocationChanged(location: Location) {
+        // Aquí se recibe la ubicación actual del usuario
+        //currentLocation = location
+    }
+
 
     private fun createMarker() {
         val vigo = LatLng(42.23282, -8.72264)
@@ -80,6 +93,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             4000,
             null
         )
+        val results = FloatArray(5)
+        if (currentLocation != null) {
+        for (i in crearPuntos().indices) {
+
+                val latitude = currentLocation!!.latitude
+                val longitude = currentLocation!!.longitude
+                Log.d("asd","$latitude")
+                Location.distanceBetween(
+                    latitude,
+                    longitude,
+                    crearPuntos()[i].latitude,
+                    crearPuntos()[i].longitude,
+                    results
+                )
+                if (results[i] > 10) {
+                    mMap.addMarker(
+                        MarkerOptions().position(distacia(crearPuntos()[i])).title("La mas cerca")
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -91,7 +125,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     ) == PackageManager.PERMISSION_GRANTED
 
 
-    //SupressLint es una interfaz que indica que se deben ignoar las advertencias especificadas
+//SupressLint es una interfaz que indica que se deben ignoar las advertencias especificadas
     /**
      * Método que intenta activar la localización
      */
@@ -188,50 +222,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      */
     override fun onMyLocationClick(p0: Location) {
         Toast.makeText(this, "Estás en ${p0.latitude},${p0.longitude} ", Toast.LENGTH_SHORT).show()
+        currentLocation = p0
     }
+
 
     /**
      *Método en el que introduces unas coodernadas y un radio y genera marcas aleatorias en el mapa
      * @param point : el punto de donde se van a generar las marcas
      * @param radius : el radio en metros del maximo donde aparecen las marcas
      */
-    /* private fun getRandomLocation(point: LatLng, radius: Int): LatLng {
-         val randomPoints: MutableList<LatLng> = ArrayList()
-         val randomDistances: MutableList<Float> = ArrayList()
-         val myLocation = Location("")
-         myLocation.latitude = point.latitude
-         myLocation.longitude = point.longitude
 
-         //This is to generate 10 random points
-         for (i in 0..9) {
-             val x0 = point.latitude
-             val y0 = point.longitude
-             val random = Random()
-
-             // Convert radius from meters to degrees
-             val radiusInDegrees = (radius / 111000f).toDouble()
-             val u: Double = random.nextDouble()
-             val v: Double = random.nextDouble()
-             val w = radiusInDegrees * Math.sqrt(u)
-             val t = 2 * Math.PI * v
-             val x = w * Math.cos(t)
-             val y = w * Math.sin(t)
-
-             // Adjust the x-coordinate for the shrinking of the east-west distances
-             val new_x = x / Math.cos(y0)
-             val foundLatitude = new_x + x0
-             val foundLongitude = y + y0
-             val randomLatLng = LatLng(foundLatitude, foundLongitude)
-             randomPoints.add(randomLatLng)
-             val l1 = Location("")
-             l1.latitude = randomLatLng.latitude
-             l1.longitude = randomLatLng.longitude
-             randomDistances.add(l1.distanceTo(myLocation))
-         }
-         //Get nearest point to the centre
-         val indexOfNearestPointToCentre = randomDistances.indexOf(Collections.min(randomDistances))
-         return randomPoints[indexOfNearestPointToCentre]
-     }*/
     fun crearPuntos(): MutableList<LatLng> {
         val randomPoints: MutableList<LatLng> = ArrayList()
         val dLatLng = LatLng(42.23708372564379, -8.714509383173333)
