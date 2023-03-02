@@ -1,17 +1,21 @@
 package com.example.geolocalizacion
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.geolocalizacion.databinding.ActivityMapsBinding
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -22,21 +26,28 @@ import java.util.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
-    GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener,
-    LocationListener {
+    GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
-    val latitude = 42.23639016660114
-    val longitude = -8.71412387331969
-    var colelatLng: LatLng = LatLng(latitude, longitude)
+    private val latitude = 42.23639016660114
+    private val longitude = -8.71412387331969
+    private var colelatLng: LatLng = LatLng(latitude, longitude)
     private var currentLocation: Location? = null
+    private lateinit var locationManager: LocationManager
+
+    //Minimo tiempo para updates en Milisegundos
+    private val MIN_TIEMPO_ENTRE_UPDATES = (1000 * 60 * 1).toLong() // 1 minuto
+
+    //Minima distancia para updates en metros.
+    private val MIN_CAMBIO_DISTANCIA_PARA_UPDATES = (1.5).toLong() // 1.5 metros
 
 
     companion object {
         const val REQUEST_LOCATION = 0
     }
 
+   // @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +59,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        val locListener: LocationListener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+                // Aquí se recibe la ubicación actual del usuario
+                currentLocation = location
+            }
+
+            @Deprecated("Deprecated in Java")
+            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
+
+            }
+
+            override fun onProviderEnabled(provider: String) {
+
+            }
+
+            override fun onProviderDisabled(provider: String) {
+
+            }
+        }
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        locationManager.requestLocationUpdates(
+            LocationManager.GPS_PROVIDER,
+            MIN_TIEMPO_ENTRE_UPDATES,
+            MIN_CAMBIO_DISTANCIA_PARA_UPDATES.toFloat(),
+            locListener,
+            Looper.getMainLooper()
+        )
 
     }
 
@@ -75,15 +115,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         //Cuando se  ha cargado el mapa le decimos que activa la localización
         enableLocation()
 
+
         // mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
 
     }
-
-    override fun onLocationChanged(location: Location) {
-        // Aquí se recibe la ubicación actual del usuario
-        //currentLocation = location
-    }
-
 
     private fun createMarker() {
         val vigo = LatLng(42.23282, -8.72264)
@@ -95,11 +130,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         )
         val results = FloatArray(5)
         if (currentLocation != null) {
-        for (i in crearPuntos().indices) {
+            for (i in crearPuntos().indices) {
 
                 val latitude = currentLocation!!.latitude
                 val longitude = currentLocation!!.longitude
-                Log.d("asd","$latitude")
+                Log.d("asd", "$latitude")
                 Location.distanceBetween(
                     latitude,
                     longitude,
@@ -226,13 +261,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
 
-    /**
-     *Método en el que introduces unas coodernadas y un radio y genera marcas aleatorias en el mapa
-     * @param point : el punto de donde se van a generar las marcas
-     * @param radius : el radio en metros del maximo donde aparecen las marcas
-     */
-
-    fun crearPuntos(): MutableList<LatLng> {
+    private fun crearPuntos(): MutableList<LatLng> {
         val randomPoints: MutableList<LatLng> = ArrayList()
         val dLatLng = LatLng(42.23708372564379, -8.714509383173333)
         val gLatLng = LatLng(42.23768047558122, -8.71356698179755)
@@ -247,7 +276,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         return randomPoints
     }
 
-    fun distacia(point: LatLng): LatLng {
+    /**
+     *Método en el que introduces unas coodernadas y un radio y genera marcas aleatorias en el mapa
+     * @param point : el punto de donde se van a generar las marcas
+     * @return el valor mas cercano al punto dado
+     */
+    private fun distacia(point: LatLng): LatLng {
         val myLocation = Location("")
         myLocation.latitude = point.latitude
         myLocation.longitude = point.longitude
@@ -267,3 +301,4 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
 }
+
