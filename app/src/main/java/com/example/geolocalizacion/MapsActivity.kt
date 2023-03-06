@@ -34,10 +34,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var locationManager: LocationManager
 
     //Minimo tiempo para updates en Milisegundos
-    private val MIN_TIEMPO_ENTRE_UPDATES = (1000 * 60 * 1).toLong() // 1 minuto
+    private val MIN_TIEMPO_ENTRE_UPDATES = (1).toLong() // 1 minuto
 
     //Minima distancia para updates en metros.
-    private val MIN_CAMBIO_DISTANCIA_PARA_UPDATES = (1.5).toLong() // 1.5 metros
+    private val MIN_CAMBIO_DISTANCIA_PARA_UPDATES = 0f // 1.5 metros
 
 
     companion object {
@@ -81,6 +81,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             @Deprecated("Deprecated in Java")
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
             }
+
             override fun onProviderEnabled(provider: String) {}
             override fun onProviderDisabled(provider: String) {}
         }
@@ -136,27 +137,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             4000,
             null
         )
-        /*val results = FloatArray(5)
-        if (currentLocation != null) {
-            for (i in crearPuntos().indices) {
-
-                val latitude = currentLocation!!.latitude
-                val longitude = currentLocation!!.longitude
-                Log.d("asd", "$latitude")
-                Location.distanceBetween(
-                    latitude,
-                    longitude,
-                    crearPuntos()[i].latitude,
-                    crearPuntos()[i].longitude,
-                    results
-                )
-                if (results[i] > 10) {
-                    mMap.addMarker(
-                        MarkerOptions().position(distacia(crearPuntos()[i])).title("La mas cerca")
-                    )
-                }
-            }
-        }*/
     }
 
     /**
@@ -172,7 +152,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                 PackageManager.PERMISSION_GRANTED
 
 
-//SupressLint es una interfaz que indica que se deben ignoar las advertencias especificadas
+    //SupressLint es una interfaz que indica que se deben ignoar las advertencias especificadas
     /**
      * Método que intenta activar la localización
      */
