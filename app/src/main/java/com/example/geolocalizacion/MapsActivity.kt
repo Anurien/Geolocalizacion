@@ -6,12 +6,10 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,7 +31,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     private val latitude = 42.23639016660114
     private val longitude = -8.71412387331969
     private var colelatLng: LatLng = LatLng(latitude, longitude)
-    private var currentLocation: Location? = null
     private lateinit var locationManager: LocationManager
 
     //Minimo tiempo para updates en Milisegundos
@@ -47,7 +44,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         const val REQUEST_LOCATION = 0
     }
 
-   // @RequiresApi(Build.VERSION_CODES.S)
+    // @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,25 +57,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        val locListener: LocationListener = object : LocationListener {
+        // Definir un LocationListener para recibir actualizaciones de ubicación
+        val locListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                // Aquí se recibe la ubicación actual del usuario
-                currentLocation = location
+                // Iterar sobre las ubicaciones guardadas en el ArrayList
+                for (coordenada in crearPuntos()) {
+                    val locationCoordenada = Location("")
+                    locationCoordenada.latitude = coordenada.latitude
+                    locationCoordenada.longitude = coordenada.longitude
+                    Log.d("nuria2", locationCoordenada.latitude.toString())
+                    // Calcular la distancia entre la ubicación actual y la ubicación guardada
+                    val distancia = location.distanceTo(locationCoordenada)
+                    Log.d("nuria", distancia.toString())
+
+                    // Si la distancia es menor a 10 metros, agregar un marcador en el mapa
+                    if (distancia < 1000) {
+                        val markerOptions = MarkerOptions().position(coordenada)
+                        mMap.addMarker(markerOptions)
+                    }
+                }
             }
 
             @Deprecated("Deprecated in Java")
-            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
-
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
             }
-
-            override fun onProviderEnabled(provider: String) {
-
-            }
-
-            override fun onProviderDisabled(provider: String) {
-
-            }
+            override fun onProviderEnabled(provider: String) {}
+            override fun onProviderDisabled(provider: String) {}
         }
+
+        // Inicializar el LocationManager y solicitar actualizaciones de ubicación
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         locationManager.requestLocationUpdates(
@@ -86,8 +93,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             MIN_TIEMPO_ENTRE_UPDATES,
             MIN_CAMBIO_DISTANCIA_PARA_UPDATES.toFloat(),
             locListener,
-            Looper.getMainLooper()
+            Looper.myLooper()
         )
+
 
     }
 
@@ -128,7 +136,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             4000,
             null
         )
-        val results = FloatArray(5)
+        /*val results = FloatArray(5)
         if (currentLocation != null) {
             for (i in crearPuntos().indices) {
 
@@ -148,16 +156,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                     )
                 }
             }
-        }
+        }*/
     }
 
     /**
      * Método que comprueba que el permiso este activado, pidiendo el permiso y viendo si es igual a el PERMISSION_GRANTED
      */
-    private fun isPermissionsGranted() = ContextCompat.checkSelfPermission(
-        this,
-        android.Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
+    private fun isPermissionsGranted() =
+        ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                ) ==
+                PackageManager.PERMISSION_GRANTED
 
 
 //SupressLint es una interfaz que indica que se deben ignoar las advertencias especificadas
@@ -186,6 +198,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         if (ActivityCompat.shouldShowRequestPermissionRationale(
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) && ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
             )
         ) {
             Toast.makeText(this, "Ve a ajustes y acepta los permisos", Toast.LENGTH_SHORT).show()
@@ -194,8 +209,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             //Si entra por el else es la primera vez que le pedimos los permisos
             //Se le pasa el companion object para saber si ha aceptado los permisos
             ActivityCompat.requestPermissions(
-                this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                this, arrayOf<String>(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
                 REQUEST_LOCATION
             )
         }
@@ -257,7 +274,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      */
     override fun onMyLocationClick(p0: Location) {
         Toast.makeText(this, "Estás en ${p0.latitude},${p0.longitude} ", Toast.LENGTH_SHORT).show()
-        currentLocation = p0
     }
 
 
