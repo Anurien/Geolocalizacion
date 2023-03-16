@@ -22,7 +22,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import java.util.*
 
-
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
 
@@ -34,17 +33,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var locationManager: LocationManager
 
     //Minimo tiempo para updates en Milisegundos
-    private val MIN_TIEMPO_ENTRE_UPDATES = (1).toLong() // 1 minuto
+    private val MIN_TIEMPO_ENTRE_UPDATES = (15000).toLong() // 1 minuto
 
     //Minima distancia para updates en metros.
-    private val MIN_CAMBIO_DISTANCIA_PARA_UPDATES = 0f // 1.5 metros
+    private val MIN_CAMBIO_DISTANCIA_PARA_UPDATES = 1.5f // 1.5 metros
 
 
     companion object {
         const val REQUEST_LOCATION = 0
     }
 
-    // @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +69,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                     Log.d("nuria", distancia.toString())
 
                     // Si la distancia es menor a 10 metros, agregar un marcador en el mapa
-                    if (distancia < 1000) {
+                    if (distancia < 20) {
                         val markerOptions = MarkerOptions().position(coordenada)
                         mMap.addMarker(markerOptions)
                     }
@@ -82,8 +80,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
             }
 
-            override fun onProviderEnabled(provider: String) {}
-            override fun onProviderDisabled(provider: String) {}
+            override fun onProviderEnabled(provider: String) {
+                Log.d("nuria3", "provider enable")
+            }
+
+            override fun onProviderDisabled(provider: String) {
+                Log.d("nuria3", "provider disable")
+            }
+
         }
 
         // Inicializar el LocationManager y solicitar actualizaciones de ubicación
@@ -92,11 +96,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         locationManager.requestLocationUpdates(
             LocationManager.GPS_PROVIDER,
             MIN_TIEMPO_ENTRE_UPDATES,
-            MIN_CAMBIO_DISTANCIA_PARA_UPDATES.toFloat(),
+            MIN_CAMBIO_DISTANCIA_PARA_UPDATES,
             locListener,
             Looper.myLooper()
         )
-
 
     }
 
