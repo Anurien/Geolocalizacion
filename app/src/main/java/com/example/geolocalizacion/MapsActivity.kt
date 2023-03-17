@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,7 +34,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var locationManager: LocationManager
 
     //Minimo tiempo para updates en Milisegundos
-    private val MIN_TIEMPO_ENTRE_UPDATES = (15000).toLong() // 1 minuto
+    private val MIN_TIEMPO_ENTRE_UPDATES = (150).toLong() // 1 minuto
 
     //Minima distancia para updates en metros.
     private val MIN_CAMBIO_DISTANCIA_PARA_UPDATES = 1.5f // 1.5 metros
@@ -61,17 +62,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                 // Iterar sobre las ubicaciones guardadas en el ArrayList
                 for (coordenada in crearPuntos()) {
                     val locationCoordenada = Location("")
-                    locationCoordenada.latitude = coordenada.latitude
-                    locationCoordenada.longitude = coordenada.longitude
-                    Log.d("nuria2", locationCoordenada.latitude.toString())
+                    locationCoordenada.latitude = coordenada.lat
+                    locationCoordenada.longitude = coordenada.lng
                     // Calcular la distancia entre la ubicación actual y la ubicación guardada
                     val distancia = location.distanceTo(locationCoordenada)
-                    Log.d("nuria", distancia.toString())
-
                     // Si la distancia es menor a 10 metros, agregar un marcador en el mapa
                     if (distancia < 20) {
-                        val markerOptions = MarkerOptions().position(coordenada)
+                        val markerOptions =
+                            MarkerOptions().position(LatLng(coordenada.lat, coordenada.lng))
+                                .title(coordenada.title)
+
                         mMap.addMarker(markerOptions)
+                        //Con este listener aparece el mensaje en la pantalla al pulsar la marca
+                        mMap.setOnMarkerClickListener { marker ->
+                            //si el titulo de la marca seleccionada coincide con el del array
+                            //muestra el mensaje por pantalla
+                            val position =
+                                crearPuntos().indexOfFirst { it.title == marker.title.toString() }
+                            if (position != -1) {
+                                val message = crearPuntos()[position].message
+                                showMessage(marker.title.toString(), message)
+                            }
+                            true
+                        }
                     }
                 }
             }
@@ -260,7 +273,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
 
-    private fun crearPuntos(): MutableList<LatLng> {
+    private fun crearPuntos(): MutableList<CustomMarker> {
         val randomPoints: MutableList<LatLng> = ArrayList()
         val dLatLng = LatLng(42.23708372564379, -8.714509383173333)
         val gLatLng = LatLng(42.23768047558122, -8.71356698179755)
@@ -272,7 +285,60 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         randomPoints.add(fLatLng)
         randomPoints.add(faLatLng)
         randomPoints.add(bLatLng)
-        return randomPoints
+
+        val markersList = mutableListOf<CustomMarker>()
+        markersList.add(
+            CustomMarker(
+                37.4219983,
+                -122.084,
+                "Dominos Pizza",
+                "Rera Rera Rera pizza mozarella"
+            )
+        )
+        markersList.add(
+            CustomMarker(
+                42.23768047558122,
+                -8.71356698179755,
+                "Gadis",
+                "La siguiente parada tambien es un super"
+            )
+        )
+        markersList.add(
+            CustomMarker(
+                42.23915341127386,
+                -8.71947734143543,
+                "Froiz",
+                "Parece que estamos ante la ruta del super"
+            )
+        )
+        markersList.add(
+            CustomMarker(
+                42.23803379805943,
+                -8.71477555189415,
+                "Familia",
+                "no mas super, solo borguer"
+            )
+        )
+        markersList.add(
+            CustomMarker(
+                42.23845365271288,
+                -8.716789835362103,
+                "Bertys",
+                "Enhorabuena llegaste a la última marca"
+            )
+        )
+
+        return markersList
+    }
+
+
+    private fun showMessage(title: String, message: String) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("Aceptar", null)
+            .create()
+        dialog.show()
     }
 
     /**
@@ -280,24 +346,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * @param point : el punto de donde se van a generar las marcas
      * @return el valor mas cercano al punto dado
      */
-    private fun distacia(point: LatLng): LatLng {
-        val myLocation = Location("")
-        myLocation.latitude = point.latitude
-        myLocation.longitude = point.longitude
-        val randomPoints: MutableList<LatLng> = crearPuntos()
-        val randomDistances: MutableList<Float> = ArrayList()
+    /* private fun distacia(point: LatLng): LatLng {
+         val myLocation = Location("")
+         myLocation.latitude = point.latitude
+         myLocation.longitude = point.longitude
+         val randomPoints: MutableList<LatLng> = crearPuntos()
+         val randomDistances: MutableList<Float> = ArrayList()
 
-        for (i in randomPoints.indices) {
-            val l1 = Location("")
-            l1.latitude = randomPoints[i].latitude
-            l1.longitude = randomPoints[i].longitude
-            randomDistances.add(l1.distanceTo(myLocation))
-        }
-        //Coge el valor mas cercano a la marca actual
-        val indexMasCercaMarca = randomDistances.indexOf(Collections.min(randomDistances))
-        colelatLng = randomPoints[indexMasCercaMarca]
-        return randomPoints[indexMasCercaMarca]
-    }
+         for (i in randomPoints.indices) {
+             val l1 = Location("")
+             l1.latitude = randomPoints[i].latitude
+             l1.longitude = randomPoints[i].longitude
+             randomDistances.add(l1.distanceTo(myLocation))
+         }
+         //Coge el valor mas cercano a la marca actual
+         val indexMasCercaMarca = randomDistances.indexOf(Collections.min(randomDistances))
+         colelatLng = randomPoints[indexMasCercaMarca]
+         return randomPoints[indexMasCercaMarca]
+     } */
 
 }
 
