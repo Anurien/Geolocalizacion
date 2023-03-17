@@ -9,7 +9,7 @@ Cuando el jugador se acerca a uno de estos lugares, se muestra una marca en el m
 - Dispositivo Android o Emulador  
 
 ## Configuración
-Clona el repositorio o descarga el código fuente.
+1. Clona el repositorio o descarga el código fuente.
 En la carpeta raíz del proyecto, crea un archivo google_maps_api.xml dentro de la carpeta res/values/.
 Este archivo debe contener tu API Key de Google Maps de la siguiente manera:
 
@@ -18,9 +18,9 @@ Este archivo debe contener tu API Key de Google Maps de la siguiente manera:
 <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">TU_API_KEY_AQUÍ</string>
 </resources>
 ```
-Abre el proyecto en Android Studio y espera a que se descarguen las dependencias.  
-Conecta tu dispositivo Android al ordenador o inicia un emulador.  
-Ejecuta la aplicación desde Android Studio.  
+2. Abre el proyecto en Android Studio y espera a que se descarguen las dependencias.  
+3. Conecta tu dispositivo Android al ordenador o inicia un emulador.  
+4. Ejecuta la aplicación desde Android Studio.  
 
 ## Cómo jugar
 
@@ -36,6 +36,12 @@ Para utilizar la aplicación, sigue los siguientes pasos:
 - Kotlin: Lenguaje de programación utilizado para desarrollar la aplicación.  
 - Google Maps API: API de Google Maps utilizada para mostrar el mapa y las marcas en el mismo.  
 - Android Studio: Entorno de desarrollo integrado utilizado para desarrollar la aplicación.  
+
+## Capturas del juego
+
+Pista cuando tocas una marca:  
+![pista](https://user-images.githubusercontent.com/91197967/226068563-51e87764-11b9-4f22-af82-45728eee3c2a.png)
+
 
 ## Contribuciones
 Si deseas contribuir a este proyecto, puedes crear un fork del repositorio y enviar tus cambios mediante un pull request.  
