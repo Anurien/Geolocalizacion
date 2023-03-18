@@ -39,8 +39,10 @@ Para utilizar la aplicación, sigue los siguientes pasos:
 
 ## Capturas del juego
 
-Pista cuando tocas una marca:  
+![funcionamiento](https://user-images.githubusercontent.com/91197967/226070519-b66da527-86bc-46b4-9bcb-15bc5504d491.gif) 
 ![pista](https://user-images.githubusercontent.com/91197967/226068563-51e87764-11b9-4f22-af82-45728eee3c2a.png)
+
+
 
 
 ## Contribuciones
